@@ -20,10 +20,21 @@ let privacy_level_of_char = function
   | '*' -> Some Semi_private
   | _   -> None
 
-type 'a item = Item of privacy_level * 'a * 'a
+type item_content =
+  | Text_item of string
+(*  | Item_content of 'a *)
+
+let string_of_item item =
+  match item with
+  | Text_item c -> c
+(*  | Item_content c -> c *)
+
+type 'a item = 
+  | Item of privacy_level * 'a * item_content
+  | Generic_item of privacy_level * 'a * 'a
 
 let filter_privacy_level mode items =
-  List.filter (fun (Item (p, _, _)) -> compatible_privacy p mode) items
+  List.filter (fun (Generic_item (p, _, _)) -> compatible_privacy p mode) items
 
 type 'a log_entry = Log_entry of Ptime.date * 'a * ('a item) list
 
@@ -65,11 +76,16 @@ let rec block indent =
         if (checkforblock c) then (String.append "\n") <$> block indent
         else return ""))
 
+let textp =
+  (fun tx -> Text_item (tx))
+  <$> block 2
+
 let itemp =
-  (fun p tt tx -> Item (p, tt, tx))
+  (fun p t c -> Item (p, t, c))
   <$> (fail_if_none (privacy_level_of_char <$> any_char) <* char ' ')
   <*> non_empty_line
-  <*> block 2
+  (* <*> (Text_item (block 2)) *)
+  <*> (textp)
 
 let log_entryp =
   (fun d s i -> Log_entry (d, s, i))
@@ -94,7 +110,7 @@ let log_parser =
 let apply_markup markup log =
   let apply_items items =
     List.map (fun (Item (priv, title, block)) ->
-      Item (priv, (markup title), (markup block))) items in
+      Generic_item(priv, (markup title), (markup (string_of_item block)))) items in
   List.map (fun (Log_entry (date, summary, items)) ->
     Log_entry (date, (markup summary), (apply_items items))) log
 

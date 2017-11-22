@@ -18,8 +18,16 @@
     and public “item visible to everyone”. *)
 type privacy_level = Private | Semi_private | Public
 
+type item_content =
+  | Text_item of string
+(*  | Item_content of 'a *)
+
+
+val string_of_item : item_content -> string
 (** A log item consisting of its privacy level, a title and a text, both in markup ['a].  *)
-type 'a item = Item of privacy_level * 'a * 'a
+type 'a item = 
+  | Item of privacy_level * 'a * item_content 
+  | Generic_item of privacy_level * 'a * 'a
 
 (** A log entry consisting of a date, a summary and items, both in markup ['a]. *)
 type 'a log_entry = Log_entry of Ptime.date * 'a * ('a item) list
@@ -50,7 +58,7 @@ val log_parser : (string log) Angstrom.t
 
 (** Convert a log's markup. This is especially useful
     to apply a specific markup to a freshly parsed log file. *)
-val apply_markup : ('a -> 'b) -> 'a log -> 'b log
+val apply_markup : (string -> 'a) -> string log -> 'a log
 
 (** {2 Log Building} *)
 

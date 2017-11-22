@@ -3,10 +3,11 @@ open Jg_types
 let string_of_date (y, m, d) =
   string_of_int y ^ "-" ^ string_of_int m ^ "-" ^ string_of_int d
 
+
 let data_model_of_items mode items =
   Log.filter_privacy_level mode items
-  |> List.map (fun (Log.Item (_, tt, tx)) ->
-      Tobj [ ("title", Tstr tt); ("text", Tstr tx); ])
+  |> List.map (fun (Log.Generic_item (_, tt, tx)) ->
+      Tobj [ ("title", Tstr  tt); ("text", Tstr (tx)); ])
 
 let model_of_log level log =
   [ ("entries", Tlist (List.map
