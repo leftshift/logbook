@@ -20,8 +20,10 @@ type privacy_level = Private | Semi_private | Public
 
 type item_content =
   | Text_item of string
-(*  | Item_content of 'a *)
-
+  | Int_item of int
+  | Float_item of float
+  | Bool_item of bool
+  | List_item of string list
 
 val string_of_item : item_content -> string
 (** A log item consisting of its privacy level, a title and a text, both in markup ['a].  *)

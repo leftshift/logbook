@@ -22,12 +22,15 @@ let privacy_level_of_char = function
 
 type item_content =
   | Text_item of string
-(*  | Item_content of 'a *)
+  | Int_item of int
+  | Float_item of float
+  | Bool_item of bool
+  | List_item of string list
 
 let string_of_item item =
   match item with
   | Text_item c -> c
-(*  | Item_content c -> c *)
+  | Int_item c -> string_of_int c
 
 type 'a item = 
   | Item of privacy_level * 'a * item_content
@@ -76,16 +79,25 @@ let rec block indent =
         if (checkforblock c) then (String.append "\n") <$> block indent
         else return ""))
 
-let textp =
+let text_item_p =
   (fun tx -> Text_item (tx))
   <$> block 2
 
+let item_type_parser_of_char = function
+  | ' ' -> Some text_item_p
+(*  | 'i' -> Some int_item_p
+  | 'f' -> Some float_item_p
+  | 'b' -> Some bool_item_p
+  | 'l' -> Some list_item_p *)
+  | _   -> None
+
 let itemp =
+  let item_type_parser = ref None in
   (fun p t c -> Item (p, t, c))
-  <$> (fail_if_none (privacy_level_of_char <$> any_char) <* char ' ')
+  <$> (fail_if_none (privacy_level_of_char <$> any_char))
+(*  item_type_parser := (item_type_parser_of_char <$> any_char) *)
   <*> non_empty_line
-  (* <*> (Text_item (block 2)) *)
-  <*> (textp)
+  <*> text_item_p
 
 let log_entryp =
   (fun d s i -> Log_entry (d, s, i))
